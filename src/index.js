@@ -1,31 +1,21 @@
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Home from "./Home";
-import AuthStack from "./AuthStack";
-import UnAuthStack from "./UnAuthStack";
-
-const Stack = createNativeStackNavigator();
+import { NativeBaseProvider } from "native-base";
+import Routes from "./Routes";
+import AuthProvider from "./Provider/Auth";
+import PostProvider from "./Provider/Posts";
 
 const Main = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen
-          name="Home"
-          component={Home}
-          options={{
-            headerShown: true,
-          }}
-        />
-        <Stack.Screen name="AuthStack" component={AuthStack} />
-        <Stack.Screen name="UnAuthStack" component={UnAuthStack} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <NativeBaseProvider>
+      <NavigationContainer>
+        <AuthProvider>
+          <PostProvider>
+            <Routes />
+          </PostProvider>
+        </AuthProvider>
+      </NavigationContainer>
+    </NativeBaseProvider>
   );
 };
 
