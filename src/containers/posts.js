@@ -21,13 +21,12 @@ const usePostsCounteiner = () => {
       formData.append("image", image);
       formData.append("title", title);
       formData.append("description", description);
-
       const res = await Axios({
         method: "post",
         url: "https://social-media-uit.herokuapp.com/posts",
         data: formData,
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
           "Authorization": `Bearer ${token}`,
         },
       });
@@ -45,7 +44,6 @@ const usePostsCounteiner = () => {
       }
       throw new Error("");
     } catch (error) {
-      console.log({ error });
       return {
         isSuccess: false,
         message: error?.data?.message || "Failed",

@@ -1,4 +1,15 @@
-import { Icon, Fab, List, Stack, Heading, Text, View } from "native-base";
+import {
+  Icon,
+  Fab,
+  Button,
+  TextField,
+  List,
+  Stack,
+  Heading,
+  Text,
+  View,
+  Box,
+} from "native-base";
 import React from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import FastImage from "expo-fast-image";
@@ -10,8 +21,10 @@ import { usePostsContext } from "./hooks/posts";
 
 const Dashboard = () => {
   const { logoutUser } = useAuthContext();
-  const { handleGetAllPosts, posts } = usePostsContext();
+  const { handleGetAllPosts, posts, createPost } = usePostsContext();
+  const [isLoading, setIsLoading] = React.useState(false);
   const [image, setImage] = React.useState("");
+  const [postText, setPostText] = React.useState("");
 
   React.useEffect(() => {
     handleGetAllPosts();
@@ -28,6 +41,12 @@ const Dashboard = () => {
     }
   };
 
+  const getMimeType = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+  };
+
   const pickImage = async () => {
     try {
       let result = await ImagePicker.launchImageLibraryAsync({
@@ -36,11 +55,9 @@ const Dashboard = () => {
         aspect: [4, 3],
         quality: 1,
       });
-
-      // console.log({ result });
-
       if (!result.cancelled) {
-        setImage(result.uri);
+        let localUri = result.uri;
+        setImage(localUri);
       }
     } catch (error) {}
   };
@@ -57,14 +74,69 @@ const Dashboard = () => {
       space={3}
       alignItems="center"
     >
-      {image ? (
-        <FastImage
-          cacheKey={"Key"}
-          // uri={image}
-          source={{ uri: image }}
-          style={{ width: 200, height: 200 }}
+      <Box>
+        <TextField
+          style={styles.textField}
+          value={postText}
+          onChangeText={(value) => {
+            setPostText(value);
+          }}
+          placeholder="Whats on your mind!"
         />
-      ) : null}
+        <Button
+          colorScheme="indigo"
+          // isDisabled={!name || !password || !!nameError || !!passwordError}
+          padding="2"
+          variant="solid"
+          onPress={() => {
+            pickImage();
+          }}
+          size="lg"
+        >
+          Select Image
+        </Button>
+        {image ? (
+          <FastImage
+            cacheKey={"Key"}
+            // uri={image}
+            source={{ uri: image }}
+            style={{ width: 200, height: 200 }}
+          />
+        ) : null}
+        <Button
+          colorScheme="indigo"
+          padding="2"
+          variant="solid"
+          backgroundColor={
+            !image || !postText || isLoading ? "#ccc" : undefined
+          }
+          disabled={!image || !postText || isLoading}
+          onPress={async () => {
+            setIsLoading(true);
+            let fileName = image.split("/").pop();
+            let ext = fileName.split(".").pop();
+            let type = getMimeType[ext] || "image";
+            const imageObj = {
+              name: fileName,
+              type: type,
+              uri: image,
+            };
+            const res = await createPost({
+              title: "new Post",
+              description: postText,
+              image: imageObj,
+            });
+            if (res) {
+              setPostText("");
+              setImage("");
+            }
+            setIsLoading(false);
+          }}
+          size="lg"
+        >
+          Create Post
+        </Button>
+      </Box>
       <Heading
         textAlign="center"
         justifyContent="center"
@@ -93,15 +165,6 @@ const Dashboard = () => {
           <Icon color="white" as={<MaterialIcons name="logout" />} size="6" />
         }
         label="Logout"
-      />
-      <Fab
-        borderRadius="0"
-        colorScheme="indigo"
-        placement="bottom-left"
-        onPress={() => {
-          pickImage();
-        }}
-        label="Select Image"
       />
     </Stack>
   );
@@ -151,5 +214,10 @@ const styles = StyleSheet.create({
   },
   button: {
     fontSize: 50,
+  },
+  textField: {
+    width: 300,
+    borderColor: "#000000",
+    fontSize: 20,
   },
 });

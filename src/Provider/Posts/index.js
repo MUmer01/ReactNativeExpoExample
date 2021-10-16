@@ -1,10 +1,12 @@
-import React from 'react';
-import usePostsCounteiner from '../../containers/posts';
-import { useAuthContext } from '../../hooks/auth';
-import { PostsContext } from './context';
+import React from "react";
+import { useToast } from "native-base";
+import usePostsCounteiner from "../../containers/posts";
+import { useAuthContext } from "../../hooks/auth";
+import { PostsContext } from "./context";
 
-const PostsProvider = props => {
+const PostsProvider = (props) => {
   const { create, getPosts, likePost } = usePostsCounteiner();
+  const toast = useToast();
   const { token } = useAuthContext();
   const [isLoading, setIsLoading] = React.useState(false);
   const [posts, setPosts] = React.useState([]);
@@ -28,17 +30,19 @@ const PostsProvider = props => {
         description,
         image,
       },
-      token,
+      token
     );
     if (res.isSuccess) {
-      setPosts(currentPosts => {
+      setPosts((currentPosts) => {
         const copy = [...currentPosts];
         copy.unshift(res.data.post);
         return copy;
       });
-      alert(res.data.message);
+      toast.show({ description: res.data.message });
+      return true;
     }
     setIsLoading(false);
+    return false;
   };
 
   const handleGetAllPosts = async () => {
@@ -51,9 +55,9 @@ const PostsProvider = props => {
   const handleLikePost = async (postId) => {
     const res = await likePost(postId, token);
     if (res.isSuccess) {
-      setPosts(currentPosts => {
+      setPosts((currentPosts) => {
         const copy = JSON.parse(JSON.stringify(currentPosts));
-        const currentPostIndex = copy.findIndex(post => {
+        const currentPostIndex = copy.findIndex((post) => {
           return post.id === postId;
         });
         if (currentPostIndex >= 0) {
